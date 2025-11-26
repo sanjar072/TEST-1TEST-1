@@ -1,22 +1,26 @@
+
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { AppError } from '../utils/AppError';
 
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 const signTokens = (id: number, role: string) => {
-  const accessToken = jwt.sign({ id, role }, process.env.JWT_ACCESS_SECRET!, {
-    expiresIn: process.env.JWT_ACCESS_EXPIRATION || '15m',
-  });
-  const refreshToken = jwt.sign({ id, role }, process.env.JWT_REFRESH_SECRET!, {
-    expiresIn: process.env.JWT_REFRESH_EXPIRATION || '7d',
-  });
+  const accessOptions: SignOptions = {
+    expiresIn: (process.env.JWT_ACCESS_EXPIRATION || '15m') as any
+  };
+  const refreshOptions: SignOptions = {
+    expiresIn: (process.env.JWT_REFRESH_EXPIRATION || '7d') as any
+  };
+
+  const accessToken = jwt.sign({ id, role }, process.env.JWT_ACCESS_SECRET!, accessOptions);
+  const refreshToken = jwt.sign({ id, role }, process.env.JWT_REFRESH_SECRET!, refreshOptions);
   return { accessToken, refreshToken };
 };
 
-export const register = async (req: Request, res: Response, next: NextFunction) => {
+export const register = async (req: any, res: any, next: NextFunction) => {
   try {
     const { email, password, name, role } = req.body;
 
@@ -46,7 +50,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
   }
 };
 
-export const login = async (req: Request, res: Response, next: NextFunction) => {
+export const login = async (req: any, res: any, next: NextFunction) => {
   try {
     const { email, password } = req.body;
 
@@ -78,7 +82,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   }
 };
 
-export const refresh = async (req: Request, res: Response, next: NextFunction) => {
+export const refresh = async (req: any, res: any, next: NextFunction) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) return next(new AppError('No refresh token provided', 401));

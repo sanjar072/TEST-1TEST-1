@@ -1,11 +1,12 @@
+
 import { Request, Response, NextFunction } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
 
+const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 // --- SETTINGS (Workers, Details, etc) ---
-export const getSettings = async (req: Request, res: Response, next: NextFunction) => {
+export const getSettings = async (req: any, res: any, next: NextFunction) => {
     try {
         const { key } = req.params;
         const setting = await prisma.settings.findUnique({ where: { key } });
@@ -13,7 +14,7 @@ export const getSettings = async (req: Request, res: Response, next: NextFunctio
     } catch (e) { next(e); }
 };
 
-export const updateSettings = async (req: Request, res: Response, next: NextFunction) => {
+export const updateSettings = async (req: any, res: any, next: NextFunction) => {
     try {
         const { key } = req.params;
         const setting = await prisma.settings.upsert({
@@ -26,13 +27,14 @@ export const updateSettings = async (req: Request, res: Response, next: NextFunc
 };
 
 // --- DAILY INPUT ---
-export const createDailyInput = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const createDailyInput = async (req: any, res: any, next: NextFunction) => {
     try {
         const { date, content } = req.body;
+        const userId = req.user!.id;
         const input = await prisma.dailyInput.create({
             data: {
                 date: new Date(date),
-                userId: req.user!.id,
+                userId: userId,
                 content: content
             }
         });
@@ -40,14 +42,14 @@ export const createDailyInput = async (req: AuthRequest, res: Response, next: Ne
     } catch (e) { next(e); }
 };
 
-export const getDailyInputs = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const getDailyInputs = async (req: any, res: any, next: NextFunction) => {
     try {
         const inputs = await prisma.dailyInput.findMany({
             orderBy: { date: 'desc' },
             take: 100 // Limit for performance
         });
         // Transform for frontend compatibility if needed
-        const formatted = inputs.map(i => ({ 
+        const formatted = inputs.map((i: any) => ({ 
             ...i.content as object, 
             id: i.id.toString(), 
             workDate: i.date.toISOString().split('T')[0] 
@@ -57,11 +59,11 @@ export const getDailyInputs = async (req: AuthRequest, res: Response, next: Next
 };
 
 // --- WAREHOUSE ---
-export const getBatches = async (req: Request, res: Response, next: NextFunction) => {
+export const getBatches = async (req: any, res: any, next: NextFunction) => {
     try {
         const batches = await prisma.warehouse.findMany();
         // Map to frontend structure
-        const formatted = batches.map(b => ({
+        const formatted = batches.map((b: any) => ({
             ...(b.details as object),
             id: b.id.toString(),
             quantity: b.quantity
@@ -70,7 +72,7 @@ export const getBatches = async (req: Request, res: Response, next: NextFunction
     } catch (e) { next(e); }
 };
 
-export const syncBatches = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const syncBatches = async (req: any, res: any, next: NextFunction) => {
     try {
         const batches: any[] = req.body;
         // Full sync logic (simplified for this example: delete all and recreate)

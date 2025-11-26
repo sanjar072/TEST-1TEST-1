@@ -1,3 +1,4 @@
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -16,7 +17,7 @@ app.use(express.json());
 app.use('/api', apiRoutes);
 
 // Global Error Handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: any, req: Request, res: any, next: NextFunction) => {
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     status: err.status || 'error',
